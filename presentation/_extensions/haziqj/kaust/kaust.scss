@@ -1,0 +1,549 @@
+/*-- scss:defaults --*/
+
+$right-arrow: "\2192"; // Unicode character for right arrow
+$whitecircle: "\25cb"; // Unicode character for right arrow
+
+// Custom colours
+$kaust: (
+  sat: (
+    pur: #9C6FAE, blu: #5284C4, tur: #00A6AA,
+    grn: #C8DE00, yel: #F0B500, org: #F18F00,
+    bla: #131516, mer: #b10f2e
+  ),
+  satsh: (
+    pur: #6D2463, blu: #003B75, tur: #004C59,
+    grn: #595403, yel: #643C00, org: #804900
+  ),
+  neu: (
+    pur: #CCBEB8, blu: #A1B0D1, tur: #ADB6A8,
+    grn: #C6D8B0, yel: #EDDAAB, org: #F4CC8C, gry: #B5ABA1
+  ),
+  nshd: (
+    pur: #8D7E74, blu: #73797C, tur: #68726A,
+    grn: #7A7966, yel: #9B907B, org: #BD8064, gry: #80715D
+  )
+);
+
+/* Get a color by family, with row defaulting to 'sat' */
+@function kaust($fam, $row: sat) {
+  $rowmap: map-get($kaust, $row);
+  @if $rowmap == null {
+    @error "Unknown row `#{$row}`. Use: sat, satsh, neu, nshd.";
+  }
+
+  $val: map-get($rowmap, $fam);
+  @if $val == null {
+    @error "Family `#{$fam}` not in row `#{$row}` (e.g., gray has no sat/satsh).";
+  }
+
+  @return $val;
+}
+
+/* example: generate text classes from the map */
+@each $fam, $hex in map-get($kaust, sat) {
+  .text-#{$fam} { color: kaust($fam); }
+  .bg-#{$fam}   { background-color: kaust($fam); }
+}
+
+
+// Font (Raleway)
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100..900;1,100..900&display=swap');
+
+// Font (Noto Sans Arabic)
+@import url('https://fonts.cdnfonts.com/css/neo-sans-arabic'); 
+
+$font-family-sans-serif: "Raleway", "Neo Sans Arabic", sans-serif !default;
+$presentation-font-size-root: 36px;
+
+$presentation-heading-font: "Raleway", sans-serif !default;
+$presentation-heading-color: kaust(bla) !default;
+$presentation-heading-font-weight: 200;
+//$presentation-heading-line-height: 2;
+//$presentation-block-margin: 28px;
+
+// Colors
+//$body-bg: #f0f1eb !default;
+$body-color: kaust(bla) !default;
+$link-color: kaust(tur, satsh) !default;
+$selection-bg: kaust(tur) !default;
+
+/*-- scss:rules --*/
+
+.reveal a {
+  line-height: 1.5em;
+  font-size: 100%;
+}
+
+.reveal p {
+  font-weight: 350;
+  margin-top: 1em;
+  font-size: 100%;
+  padding-bottom: 5px;
+}
+
+// title and headings
+
+#title-slide {
+  text-align: left;
+  color: kaust(bla);
+  display: block;
+  margin-top: 1.8em;
+  margin-left: 1em;
+  width: 90%;
+
+  .title {
+    color: kaust(gry, nshd);
+    font-size: 1.4em;
+    font-weight: 400;
+  }
+
+  .subtitle {
+    color: kaust(gry, nshd);
+    font-style: italic;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+ 
+  .institute {
+    color: kaust(bla);
+  }
+  .quarto-title-institute {
+    font-style: bold;
+    color: kaust(bla);
+  }
+  .quarto-title-affiliation,
+  .quarto-title-author-email {
+    color: kaust(bla);
+    font-style: italic;
+    // font-size: 80%;
+    // color: #7F7F7F;
+  }
+
+  .date {
+    margin-top: 0.25em;
+    color: kaust(gry, nshd);
+  }
+
+  .author,
+  .quarto-title-author-name {
+    margin-top: 0.5em;
+    color: kaust(bla);
+  }
+
+  .quarto-title-authors {
+    display: flex;
+    justify-content: left;
+
+    .quarto-title-author {
+      padding-left: 0em;
+      padding-right: 0em;
+      width: 100%;
+    }
+  }
+
+}
+
+.reveal h1 {
+  font-weight: 400 !important;
+}
+
+.reveal h2 {
+  font-weight: 400;
+  font-size: 1.35em;
+  margin-top: -0.2em;
+}
+
+.reveal h3 {
+  color: kaust(tur, sat);
+  font-style: italic;
+  font-weight: 350;
+  font-size: 1em;
+  margin-bottom: -5px;
+}
+
+.reveal h4 {
+  color: kaust(blu, nshd);
+  font-weight: 350;
+  font-size: 0.9em;
+  padding-top: 0.5em;
+  margin-top: 0.25em;
+  // margin-bottom: -0.25em;
+}
+
+// Alerts etc.
+.alert {
+  color: kaust(mer);
+}
+
+.fg {
+  color: kaust(bla);
+}
+
+.bg {
+  background-color: var(--col, #fff);
+  padding: 0.1em;
+  border-radius: 5px;
+  display: inline-block;
+}
+
+// lists
+
+// Unordered lists
+
+.reveal ul {
+  font-weight: 300;
+  padding-left: 16px;
+  font-size: 92%;
+  margin-top: 0;
+  padding-top: 0;
+
+  li::marker {
+    // color: mix($ubdblue, white, 70%);/**/
+    color: kaust(gry, nshd);
+  }
+}
+
+.reveal ul ul {
+  list-style: none;
+  font-size: 85%;
+  padding: 0;
+  margin-bottom: 0;
+  
+  li:before {
+    content: $whitecircle;
+    // color: mix($ubdblue, white, 60%);
+    color: kaust(gry, nshd);
+    display: inline-block;
+    width: 0.3em;
+    margin-left: -1.2em;
+    margin-right: 0.8em;
+  }
+}
+
+// Ordered lists
+
+.reveal ol {
+  font-weight: 300;
+  padding-left: 16px;
+  font-size: 92%;
+  margin-top: 0;
+  margin-bottom: 0;
+
+  li::marker {
+    color: kaust(gry, nshd);
+  }
+}
+
+.reveal ol ol {
+  font-size: 85%;
+  padding: 0;
+  margin-bottom: 0;
+  
+  li::marker {
+    color: kaust(gry, nshd);
+  }
+}
+
+// Move "hamburger" menu button to bottom right
+.reveal .slide-menu-button {
+  position: fixed;
+  bottom: 5px !important;
+  right: 5px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.reveal .slide-menu-button > * {
+  pointer-events: auto;
+}
+
+// Same for chalkboard buttons (with an offset)
+
+.reveal .slide-chalkboard-buttons {
+  position: fixed;
+  bottom: 12px !important;
+  right: 35px !important;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.reveal .slide-chalkboard-buttons > * {
+  pointer-events: auto;
+}
+
+// Beamer-style button link environment
+.button {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  background-color: kaust(tur, satsh);
+  border: 1px solid kaust(tur, satsh);
+  color: #fff !important;
+  text-decoration: none;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+.button:hover {
+  background-color: kaust(tur);
+  border-color: kaust(tur);
+}
+
+.button::before {
+  content: "▶";
+  margin-right: 5px;
+}
+
+// Special catch for etable environment to ensure these table images
+// don't overflow the slide.
+// See: https://lrberge.github.io/fixest/articles/etable_new_features.html
+
+.etable {
+  width: 100%;
+  height: calc(100% - 3em); /* Adjust 3em based on the height of your header, if necessary */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.etable img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+// KAUST Logo
+.reveal .slide-logo {
+  display: block;
+  position: fixed;
+  z-index: 0;
+  bottom: unset !important;
+  left: unset !important;
+  top: 0px !important;
+  right: 10px !important;
+  max-height: 9% !important;
+  min-height: 9% !important;
+}
+
+// Slide numbers
+.slide-number, .reveal.has-logo .slide-number {
+  top: unset !important;
+  right: unset !important;
+  bottom: 10px !important;
+  left: 10px !important;
+  color: #999 !important;
+}
+
+// Hide logo and slide number on the title slide
+.reveal .slide-number > a[href*='title-slide'] {
+  display: none;
+}
+
+// Format for inline code and chunks
+.reveal .slides code{
+  font-size: 0.9em;
+  color: kaust(bla);
+  background-color: mix(kaust(gry, neu), white, 35%);
+  padding: 0.05em;
+  border-radius: 5px;  
+}
+
+.reveal .slides code.sourceCode {
+  font-size: 1.2em;
+}
+
+div.cell-output.cell-output-stdout > pre > code {
+  /* Your styles here, e.g., */
+  font-size: 1.2em;  /* Adjust this value to your preference */
+  background-color: mix(kaust(blu, nshd), white, 0%);
+  padding: 0.25em;
+  border-radius: 0px;  
+  overflow-y: visible;
+  // max-height: none;
+}
+
+// Make column text smaller
+.column > p {
+  font-size: 0.95em; 
+  margin-bottom: -1em;
+}
+
+// Progress bar
+.reveal .progress {
+  color: kaust(org);
+  background: kaust(tur);
+  height: 1.5%;
+}
+
+// Transition slide
+.reveal .transition-slide {
+  background-color: kaust(gry, neu);
+}
+
+// Make math fonts smaller
+span.math.inline, span.math.display {
+  font-size: 0.9em;  
+}
+
+// Reduce space between display equation
+.reveal p:has(> .math.display) {
+  margin-bottom: -0.5em;  
+}
+
+.reveal figcaption {
+  margin-top: -0.2em;
+  //margin-bottom: -0.2em;
+}
+
+.aside-footnotes {
+  color: kaust(gry, nshd);
+}
+
+.reveal aside {
+  color: kaust(yel);
+  position: absolute;
+  top: 690px;
+  left: 25px;
+}
+
+.reveal blockquote {
+  margin-bottom: -0.25em
+}
+
+.small-text {
+  font-size: 0.6em;
+  margin-top: -5px;
+}
+
+.cell-output-display p {
+  margin-bottom: 0px; 
+}
+
+.cell {
+  margin-bottom: 0;  /* Removes any bottom margin on the .cell, reducing space below it */
+}
+
+.cell-output-display p,
+.column > p:first-of-type {
+  margin-bottom: 0;  /* Remove the space below the <p> inside .cell-output-display and the first <p> in .column */
+}
+
+.column > p:not(:first-of-type) {
+  margin-top: 0;  /* Remove the space above all <p> elements in .column except the first one */
+}
+
+// Too much space after figures
+div.quarto-figure.quarto-figure-center {
+    margin: 0 !important;  /* '0' eliminates the margin, and '!important' ensures this rule takes precedence */
+}
+
+// Target the table class for the striped and hover effects, then enhance it for the booktabs style
+.my-table {
+  // Remove default borders to start with a clean slate
+  border-collapse: collapse;
+  border: none;
+
+  // Target the header row for the top and midline
+  thead {
+    tr.header {
+      th {
+        border-top: 2px solid black; // Top line above headers
+        border-bottom: 2px solid black; // Midline below headers
+        padding: 8px; // Adjust padding as needed
+        text-align: left; // Adjust text alignment as preferred
+      }
+    }
+  }
+
+  tbody tr td {
+    border: none;
+  }
+  
+  // Target the last row in the tbody to apply the bottom border
+  tbody tr:last-child {
+    td {
+      border-top: 2px solid black; // Apply a solid bottom border
+    }
+  }
+}
+
+// Callout blocks
+.callout {
+  &.callout-note {
+    .callout-body {
+      
+      .callout-title {
+        p {
+          font-size: 1.2em; 
+        }
+      }
+
+      // Adjust the font size for content inside the callout block
+      .callout-content {
+        font-size: 1.3em; 
+        .math.inline {
+          font-size: 1em; 
+        }
+        .math.display {
+          font-size: 1.1em; 
+        }
+      }
+    }
+  }
+}
+
+.r-stack .cell .cell-output-display img {
+  width: auto !important; /* Return to default width */
+  max-width: 100% !important; /* Ensure it can grow beyond 100% of its container */
+  // transform: scale(1.2) !important; /* Enforce scaling; adjust as needed */
+}
+
+// Nudge
+.nudge-up-xxl {
+  transform: translateY(-110px);
+}
+
+.nudge-up-xl {
+  transform: translateY(-75px);
+}
+
+.nudge-up-large {
+  transform: translateY(-50px);
+}
+
+.nudge-up-medium {
+  transform: translateY(-37.5px);
+}
+
+.nudge-up {
+  transform: translateY(-25px);
+}
+
+.nudge-up-small {
+  transform: translateY(-12.5px);
+}
+
+.nudge-down {
+  transform: translateY(25px);
+}
+
+.nudge-down {
+  transform: translateY(12.5px);
+}
+
+.nudge-down-medium {
+  transform: translateY(37.5px);
+}

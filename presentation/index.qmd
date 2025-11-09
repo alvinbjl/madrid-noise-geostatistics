@@ -1,0 +1,191 @@
+---
+output-dir: ../docs/presentation
+title: Bayesian Geostatistical Modeling of Noise Pollution in Madrid
+format:
+  kaust-revealjs:
+    transition: fade
+    auto-stretch: false
+    width: 1250  # 1050
+    height: 760  # 700
+    self-contained: false
+    # self-contained: true (bigger file, embedded css, png)
+    toc: false
+    toc-depth: 1
+    code-block-height: 700px
+    # html-table-processing: none
+author:
+  - name: Alvin Bong Jia Lok
+    affiliations: 
+      - 'VSRP, BAYESCOMP @ CEMSE-KAUST'
+      - '<span style="font-style:normal;">[`https://alvinbjl.github.io/madrid-noise-geostatistics/presentation/`](https://alvinbjl.github.io/madrid-noise-geostatistics/presentation/)</span>'
+bibliography: refs.bib
+date: 2025-11-13
+
+
+---
+
+## Introduction
+
+Urban noise pollution affects public health and quality of life.
+
+In 2011, an estimated one million healthy life years were lost from traffic-related noise in the western Europe alone [@world2011burden].
+
+::: callout-note
+## Project objective
+
+Understand the spatial patterns of noise exposure in Madrid.
+
+Identify high and low-noise areas.
+
+:::
+
+
+This supports future policy on urban noise management.
+
+## Data: Stations & EDA
+
+```{r}
+#| layout-ncol: 2
+load("slides-data.rda")
+p1
+
+p2
+```
+
+- 31 Noise stations in Madrid, mostly near central roads
+- Target data: Annual average of year 2024 
+- EDA reveal higher noise in city center
+
+## Covariates
+```{r, fig.height = 7}
+#| layout-ncol: 2
+p3
+
+p4
+```
+
+## Covariates & Prediction points
+::: {layout-ncol=2}
+![](roads.png)
+
+![](mesh.png)
+:::
+
+## Methods
+### Bayesian Geostatistical Model
+Let $Y_i$ be the noise observed at locations $i \in \{1, \dotsc, n\}$. The model  we use to predict noise level at unsampled locations is as follow:
+
+
+
+
+
+
+
+::: callout-note
+## Model
+$$
+Y_i \mid \mu_i \sim \mathcal{N}(\mu_i,\sigma^2),
+$$
+
+$$
+\mu_i = \beta_0 + \sum_{k=1}^{5} \beta_k X_{ik} + S(\mathbf{x_i})
+$$
+:::
+
+
+## Methods
+### Bayesian Geostatistical Model
+
+::: callout-note
+## Model
+$$
+Y_i \mid \mu_i \sim \mathcal{N}(\mu_i,\sigma^2),
+$$
+
+$$
+\mu_i = \beta_0 + \sum_{k=1}^{5} \beta_k X_{ik} + S(\mathbf{x_i})
+$$
+:::
+
+::: {.nudge-down-small}
+- $\beta_0$ is the intercept,
+- $\beta_1$, $\beta_2$, $\beta_3$, $\beta_4$ and $\beta_5$ are regression coefficients for the covariates
+- $S()$ is a spatial random effect that is modeled as a zero-mean Gaussian process with Matérn covariance function. SPDE mesh constructed using `inla.nonconvex.hull()`
+:::
+
+## Methods
+### Estimation
+Model fitting performed using INLA [@rue2009approximate]. 
+
+### Model Performance
+Assessed by Root Mean Square Error
+$$\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} \left( y_i - \hat{y}_i \right)^2 }$$
+
+### Exceedence Probability
+Highlight regions with noise levels exceeding 62 dB and below 56 dB.
+Reason for threshold: average of WHO guidline (leisure 70dB & road noise $\approx$ 56 dB) [@world2018environmental; @seto2023conversions; @brink2018conversion]]
+
+# Results {.transition-slide}
+
+## Model
+``` {r, fig.height=3}
+library(knitr)
+library(dplyr)
+
+# Fixed effects
+fixed_effects_noise <- tribble(
+  ~Term,               ~Mean,      ~`2.5%`,    ~`97.5%`,
+  "(Intercept)",       31.49,      4.14,       56.46,
+  "elev",              0.053,      0.017,      0.093,
+  "ndvi",             -21.28,    -46.22,       4.65,
+  "dist_major",       -0.00015,  -0.00250,    0.00218,
+  "dist_secondary",   -0.00532,  -0.01053,   -0.00022,
+  "dist_local",        0.01176,  -0.04318,    0.06582
+)
+
+# Print table
+kable(fixed_effects_noise, caption = "Fixed Effects Summary of Noise Model", digits = 3)
+
+
+```
+
+- **Elevation:** ➕ Likely because Madrid’s urban core is on higher terrain.
+- **Distance to secondary roads:** ➖ noise decreases further from roads.
+- **RMSE:** 3.18 dB ("moderate" performance)
+
+## Prediction
+```{r, fig.height=7}
+#| layout-ncol: 2
+p6
+
+p7
+```
+
+## Exceedence Probability
+
+```{r, fig.height=6}
+#| layout-ncol: 2
+p8
+
+p9
+```
+
+- Central districts exhibit highest noise intensity
+- Quiet zones are rare, mostly northwest vegetated regions
+
+
+
+## Conclusion
+- Negative relationship between noise and distance from secondary roads
+- Positive relationship with elevation
+- Central cities exhibit highest noise intensity
+- Quiet zones are rare
+
+<br> 
+
+### Limitations
+- Noise stations biased toward roads & urban centers → quieter areas underrepresented
+- Dynamic factors missing: traffic volume, land use, building morphology
+- Matérn spatial effect assumes isotropy → same distance ≠ same noise in different contexts
+
+## References

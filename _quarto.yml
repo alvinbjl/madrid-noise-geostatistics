@@ -1,0 +1,94 @@
+# for just report
+# project:
+#    type: manuscript
+#    output-dir: docs
+# 
+# manuscript:
+#    article: index.qmd
+#    code-links:
+#      - repo
+# 
+# notebook-links: false
+# format:
+#   html:
+#     # theme: solar
+#     toc: true
+#     toc-expand: 2
+#     toc-location: left
+#     # code-fold: true
+#     embed-resources: true
+#     number-sections: true
+#     comments:
+#       hypothesis: true
+# 
+#   pdf:
+#     documentclass: article
+#     fontsize: 12pt
+#     geometry: margin=2cm
+# 
+#   docx:
+#     link-citations: true
+
+# for website format
+# project:
+#   type: website
+#   output-dir: docs/
+#   render:
+#     - "*.qmd"
+#     - "!presentation/"
+# 
+# website:
+#   title: "School Disparities"
+#   navbar:
+#     left:
+#       - text: "Report"
+#         href: index.html
+#       - text: "Presentation"
+#         href: presentation/index.html
+# format:
+#   html:
+#     theme:
+#       - cosmo
+#       - brand
+#     css: styles.css
+#     toc: true
+
+# option 3:
+project:
+  type: manuscript
+  output-dir: docs
+  render:
+    - "*.qmd"
+    - "!presentation/"
+ 
+manuscript:
+  article: index.qmd
+  code-links:
+      - repo
+notebook-links: false
+format:
+  html:
+    # theme: solar
+    toc: true
+    toc-expand: 2
+    toc-location: left
+    # code-fold: true
+    embed-resources: true
+    number-sections: true
+    comments:
+      hypothesis: true
+
+  pdf:
+    documentclass: article
+    fontsize: 12pt
+    geometry: margin=2cm
+
+  docx:
+    link-citations: true
+
+
+execute:
+  echo: true
+  cache: false
+  freeze: auto
+  warning: false
