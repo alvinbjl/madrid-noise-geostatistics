@@ -16,151 +16,151 @@ mapviewOptions(fgb = FALSE)
 library(rnaturalearth)
 library(tidyverse)
 library(terra)
-# -------------------------
-# a. Madrid map (the city) -----------------------------------------------------------------------
-# -------------------------
-map <- geodata::gadm(country = "ESP", level = 4, path = tempdir())
-map <- map |> 
-  st_as_sf() |> 
-  filter(NAME_4 == "Madrid")
-mapview(map)
-view(map)
-# -------------------------
-# b. Covariate 1: Elevation -----------------------------------------------------------------------
-# -------------------------
-
-# 2. Get covariate 1: elevation for Spain (SpatRaster)
-r <- geodata::elevation_30s(country = "ESP", path = tempdir())
-
-# 3. Convert sf polygon to SpatVector (terra format)
-madrid_vect <- vect(map)
-
-# 4. Crop and mask the raster to Madrid
-madrid_crop <- crop(r, madrid_vect)
-elev <- mask(madrid_crop, madrid_vect)
-
-# 5. Plot
-plot(elev)
-
-# -------------------------
-# c. Covariate 2: Roads data (OSM) -----------------------------------------------------------------------
-# -------------------------
-# We'll request OSM "highway" features (this includes major roads, minor roads, residential, etc.)
-bb <- st_bbox(map)
-
-# 2) Define the highway groups (strings for OSM)
-major_vals     <- c("motorway","motorway_link","trunk","trunk_link","primary","primary_link")
-secondary_vals <- c("secondary","secondary_link","tertiary","tertiary_link")
-local_vals     <- c("residential","living_street","service","unclassified")
-
-# Combined values you want to download
-all_vals <- c(major_vals, secondary_vals, local_vals)
-
-# 3) Query OSM (only these highway types)
-q1 <- opq(bbox = bb) %>%
-  add_osm_feature(key = "highway", value = major_vals)
-q2 <- opq(bbox = bb) %>%
-  add_osm_feature(key = "highway", value = secondary_vals)
-q3 <- opq(bbox = bb) %>%
-  add_osm_feature(key = "highway", value = local_vals)
-
-# 4) Get data
-osm_roads1 <- osmdata_sf(q1)
-osm_roads2 <- osmdata_sf(q2)
-osm_roads3 <- osmdata_sf(q3)
-
-roads_sf1 <-
-  osm_roads1$osm_lines %>%
-  st_transform(25830) %>%
-  select(name)
-roads_sf2 <-
-  osm_roads2$osm_lines %>%
-  st_transform(25830) %>%
-  select(name)
-roads_sf3 <-
-  osm_roads3$osm_lines %>%
-  st_transform(25830) %>%
-  select(name)
-
-roads_major_sf <- st_union(roads_sf1$geometry)
-roads_secondary_sf <- st_union(roads_sf2$geometry)
-roads_local_sf <- st_union(roads_sf3$geometry)
-
-# -------------------------
-# c. Covariate 3: NDVII  -----------------------------------------------------------------------
-# -------------------------
-
-ndvi <- terra::rast("data/NDVI/NDVI_20200601T000000Z.tif")
-ndvi <- terra::crop(ndvi, map) |> mask(map)
-
-# ----------------
----------
-# d. Response Variable - NOISE -----------------------------------------------------------------------
-# -------------------------
-
-# station location
-library(readr)
-station <- read_delim(
-  "data/station.csv",
-  delim = ";",
-  locale = locale(encoding = "ISO-8859-1"),
-  trim_ws = TRUE
-)
-# ETRS89 geographic coords
-station <- station |> 
-  # as_tibble() |> 
-  st_as_sf(coords = c("X", "Y"), crs=25830)
-  # |>  st_transform(crs=4326)
-
-# noise data
-monthly <- read_delim(
-  "data/monthly.csv",
-  delim = ";",
-  locale = locale(encoding = "ISO-8859-1", decimal_mark = ","),
-  na = c("N/D"),
-  trim_ws = TRUE
-)
-
-yearly <-
-  monthly |> 
-  group_by(Estación, Año) |> 
-  summarise(LAeq = mean(LAeq, na.rm=T))
-
-noise24 <- filter(yearly, Año == 2024)
-
-# -------------------------
-# e. Join all data -----------------------------------------------------------------------
-# -------------------------
-y <- left_join(noise24, station, join_by(Estación == ESTACIÓN)) |> 
-  select(Estación, NOMBRE, geometry, LAeq) |> 
-  st_as_sf(crs=25830)
-
-y$elev <- terra::extract(elev, vect(y))$ESP_elv_msk
-y$dist_major <- as.numeric(st_distance(y, roads_major_sf))
-y$dist_secondary <- as.numeric(st_distance(y, roads_secondary_sf))
-y$dist_local <- as.numeric(st_distance(y, roads_local_sf))
-y$ndvi <- terra::extract(ndvi, vect(y))$NDVI_20200601T000000Z
-
-# -------------------------
-# e. Prediction points -----------------------------------------------------------------------
-# -------------------------
-yp <- terra::crds(elev)
-yp <- as.data.frame(yp)
-dim(yp)
-yp_sf <- yp |> 
-  st_as_sf(coords = c("x","y"), crs=4326) |> 
-  st_transform(25830)
-yp$elev <- terra::extract(elev, yp)$ESP_elv_msk  
-yp$dist_major <- as.numeric(st_distance(yp_sf, roads_major_sf))
-yp$dist_secondary <- as.numeric(st_distance(yp_sf, roads_secondary_sf))
-yp$dist_local <- as.numeric(st_distance(yp_sf, roads_local_sf))
-yp$ndvi <- terra::extract(ndvi, yp[,1:2])$NDVI_20200601T000000Z
-
-# save(y, yp,
-#      roads_major_sf, roads_secondary_sf, roads_local_sf,
-#      file = "data/data.rda")
-# save(map, file = "data/map.rda")
-# writeRaster(elev, "data/elev.tif", overwrite = TRUE)
+# # -------------------------
+# # a. Madrid map (the city) -----------------------------------------------------------------------
+# # -------------------------
+# map <- geodata::gadm(country = "ESP", level = 4, path = tempdir())
+# map <- map |> 
+#   st_as_sf() |> 
+#   filter(NAME_4 == "Madrid")
+# mapview(map)
+# view(map)
+# # -------------------------
+# # b. Covariate 1: Elevation -----------------------------------------------------------------------
+# # -------------------------
+# 
+# # 2. Get covariate 1: elevation for Spain (SpatRaster)
+# r <- geodata::elevation_30s(country = "ESP", path = tempdir())
+# 
+# # 3. Convert sf polygon to SpatVector (terra format)
+# madrid_vect <- vect(map)
+# 
+# # 4. Crop and mask the raster to Madrid
+# madrid_crop <- crop(r, madrid_vect)
+# elev <- mask(madrid_crop, madrid_vect)
+# 
+# # 5. Plot
+# plot(elev)
+# 
+# # -------------------------
+# # c. Covariate 2: Roads data (OSM) -----------------------------------------------------------------------
+# # -------------------------
+# # We'll request OSM "highway" features (this includes major roads, minor roads, residential, etc.)
+# bb <- st_bbox(map)
+# 
+# # 2) Define the highway groups (strings for OSM)
+# major_vals     <- c("motorway","motorway_link","trunk","trunk_link","primary","primary_link")
+# secondary_vals <- c("secondary","secondary_link","tertiary","tertiary_link")
+# local_vals     <- c("residential","living_street","service","unclassified")
+# 
+# # Combined values you want to download
+# all_vals <- c(major_vals, secondary_vals, local_vals)
+# 
+# # 3) Query OSM (only these highway types)
+# q1 <- opq(bbox = bb) %>%
+#   add_osm_feature(key = "highway", value = major_vals)
+# q2 <- opq(bbox = bb) %>%
+#   add_osm_feature(key = "highway", value = secondary_vals)
+# q3 <- opq(bbox = bb) %>%
+#   add_osm_feature(key = "highway", value = local_vals)
+# 
+# # 4) Get data
+# osm_roads1 <- osmdata_sf(q1)
+# osm_roads2 <- osmdata_sf(q2)
+# osm_roads3 <- osmdata_sf(q3)
+# 
+# roads_sf1 <-
+#   osm_roads1$osm_lines %>%
+#   st_transform(25830) %>%
+#   select(name)
+# roads_sf2 <-
+#   osm_roads2$osm_lines %>%
+#   st_transform(25830) %>%
+#   select(name)
+# roads_sf3 <-
+#   osm_roads3$osm_lines %>%
+#   st_transform(25830) %>%
+#   select(name)
+# 
+# roads_major_sf <- st_union(roads_sf1$geometry)
+# roads_secondary_sf <- st_union(roads_sf2$geometry)
+# roads_local_sf <- st_union(roads_sf3$geometry)
+# 
+# # -------------------------
+# # c. Covariate 3: NDVII  -----------------------------------------------------------------------
+# # -------------------------
+# 
+# ndvi <- terra::rast("data/NDVI/NDVI_20200601T000000Z.tif")
+# ndvi <- terra::crop(ndvi, map) |> mask(map)
+# 
+# # ----------------
+# ---------
+# # d. Response Variable - NOISE -----------------------------------------------------------------------
+# # -------------------------
+# 
+# # station location
+# library(readr)
+# station <- read_delim(
+#   "data/station.csv",
+#   delim = ";",
+#   locale = locale(encoding = "ISO-8859-1"),
+#   trim_ws = TRUE
+# )
+# # ETRS89 geographic coords
+# station <- station |> 
+#   # as_tibble() |> 
+#   st_as_sf(coords = c("X", "Y"), crs=25830)
+#   # |>  st_transform(crs=4326)
+# 
+# # noise data
+# monthly <- read_delim(
+#   "data/monthly.csv",
+#   delim = ";",
+#   locale = locale(encoding = "ISO-8859-1", decimal_mark = ","),
+#   na = c("N/D"),
+#   trim_ws = TRUE
+# )
+# 
+# yearly <-
+#   monthly |> 
+#   group_by(Estación, Año) |> 
+#   summarise(LAeq = mean(LAeq, na.rm=T))
+# 
+# noise24 <- filter(yearly, Año == 2024)
+# 
+# # -------------------------
+# # e. Join all data -----------------------------------------------------------------------
+# # -------------------------
+# y <- left_join(noise24, station, join_by(Estación == ESTACIÓN)) |> 
+#   select(Estación, NOMBRE, geometry, LAeq) |> 
+#   st_as_sf(crs=25830)
+# 
+# y$elev <- terra::extract(elev, vect(y))$ESP_elv_msk
+# y$dist_major <- as.numeric(st_distance(y, roads_major_sf))
+# y$dist_secondary <- as.numeric(st_distance(y, roads_secondary_sf))
+# y$dist_local <- as.numeric(st_distance(y, roads_local_sf))
+# y$ndvi <- terra::extract(ndvi, vect(y))$NDVI_20200601T000000Z
+# 
+# # -------------------------
+# # e. Prediction points -----------------------------------------------------------------------
+# # -------------------------
+# yp <- terra::crds(elev)
+# yp <- as.data.frame(yp)
+# dim(yp)
+# yp_sf <- yp |> 
+#   st_as_sf(coords = c("x","y"), crs=4326) |> 
+#   st_transform(25830)
+# yp$elev <- terra::extract(elev, yp)$ESP_elv_msk  
+# yp$dist_major <- as.numeric(st_distance(yp_sf, roads_major_sf))
+# yp$dist_secondary <- as.numeric(st_distance(yp_sf, roads_secondary_sf))
+# yp$dist_local <- as.numeric(st_distance(yp_sf, roads_local_sf))
+# yp$ndvi <- terra::extract(ndvi, yp[,1:2])$NDVI_20200601T000000Z
+# 
+# # save(y, yp,
+# #      roads_major_sf, roads_secondary_sf, roads_local_sf,
+# #      file = "data/data.rda")
+# # save(map, file = "data/map.rda")
+# # writeRaster(elev, "data/elev.tif", overwrite = TRUE)
 
 # -------------------------
 # 0. Load data -----------------------------------------------------------------------
@@ -281,14 +281,22 @@ elev_c <- terra::crop(elev, vect(t_sf)) |> mask(vect(t_sf))
 mapview(elev_c, alpha = 0.6, layer.name="elevation")
 ndvi <- terra::crop(ndvi, vect(t_sf)) |> mask(vect(t_sf))
 mapview(ndvi, alpha = 0.5, layer.name="NDVI")
-mapview(yp2, alpha = 0.1, layer.name="Prediction Points") + 
-  mapview(roads_major_sf, color = "red") +
-  mapview(roads_secondary_sf, color = "blue") +
-  mapview(roads_local_sf, color = "lightblue")
+# mapview(yp2, alpha = 0.1, layer.name="Prediction Points") + 
+#   mapview(roads_major_sf, color = "red") +
+#   mapview(roads_secondary_sf, color = "blue") +
+#   mapview(roads_local_sf, color = "lightblue")
 
 # -------------------------
 # 2. Model -----------------------------------------------------------------------
 # -------------------------
+# priors doesnt change much
+spde <- inla.spde2.pcmatern(
+  mesh = mesh,
+  alpha = 2,                       # common choice (nu = 1)
+  prior.range = c(50, 0.9),        # e.g. P(range < 50 units) = 0.5
+  prior.sigma = c(5, 0.01)         # e.g. P(sigma > 1) = 0.01
+)
+
 formula <- y ~ 0 + b0 + ndvi + elev + dist_major + dist_secondary + 
   dist_local + f(s, model = spde)
 # formula <- y ~ 0 + b0 + ndvi + dist_major + dist_secondary + f(s, model = spde)
@@ -351,7 +359,7 @@ r_excprob <- terra::rasterize(
   fun = mean
 )
 
-pal <- colorNumeric("magma", c(0, 1), na.color = "transparent")
+# pal <- colorNumeric("magma", c(0, 1), na.color = "transparent")
 mapview(r_excprob, alpha=0.6, layer.name="P(n>62)") + 
   mapview(y, zcol="LAeq", hide=TRUE, layer.name="Station")
 
@@ -368,7 +376,7 @@ r_nonexcprob <- terra::rasterize(
   fun = mean
 )
 
-pal <- colorNumeric("magma", c(0, 1), na.color = "transparent")
+# pal <- colorNumeric("magma", c(0, 1), na.color = "transparent")
 mapview(r_nonexcprob, alpha=0.6, layer.name="P(n<56)") + 
   mapview(y, zcol="LAeq", hide=TRUE, layer.name="Station") 
 
